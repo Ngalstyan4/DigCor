@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <script src="js/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.3.0/Chart.bundle.min.js"></script>
+
+
+    <title>Clean Blog</title>
+<link rel="stylesheet" type="text/css" media="screen,projection" href="css/style.css">
+
+<script>
+// solr query for chyart:
+// http://ectbeta.princeton.edu:8983/solr/collection1/select?q=headline%3Adowning&group=true&group.field=yearmo&&wt=json&indent=true
+jQuery( document ).ready(function() {
+
+	function goGetData(searchstr) {
+		searchstr = "headline:"+searchstr;
+		$.ajax({
+		  'url': 'http://ectbeta.princeton.edu:8983/solr/collection1/select',
+		  'data': {'wt':'json', 'q': searchstr, 'rows':200},
+		  'success': handleResults,
+		  'dataType': 'jsonp',
+		  'jsonp': 'json.wrf'
+		});
+	}
+
+	function goGetChartData(searchstr) {
+		searchstr = "headline:"+searchstr;
+		$.ajax({
+		  'url': 'http://ectbeta.princeton.edu:8983/solr/collection1/select',
+		  'data': {'wt':'json', 'q': searchstr, 'rows':200, 'group': 'true', 'group.field': 'yearmo'},
+		  'success': buildChart,
+		  'dataType': 'jsonp',
+		  'jsonp': 'json.wrf'
+		});
+	}
+
+	$( ".textinput" ).keyup(function(event) {
+	  var s = this.value;
+	  event.preventDefault();
+	  goGetData(s);
+	  goGetChartData(s);
+	});
+
+
+	goGetData('entitled');
+	goGetChartData('entitled');
+});
+
+
+function handleResults(data) {
+
+  var dateArr = new Array;
+  $('#results').html('');
+  $.each(data.response.docs, function(index, doc){
+    $('#results').append("<li>"+doc.headline+" polarity: "+doc.polarity+" subjectivity: "+doc.subjectivity+" </li>");
+    var dateInfo = {'year': doc.year, 'month': doc.month}
+    dateArr.push(dateInfo); 
+  });
+
+  //console.log(dateArr);
+}
+
+var dArr = new Array();
+
+function buildChart(data) {
+  var groups = data.grouped;
+  $.each(groups.yearmo.groups, function(index, doc){
+    var yearmo = doc.groupValue;
+    var count = doc.doclist.numFound;
+    dArr.push(yearmo);
+
+  });
+
+}
+
+
+
+
+</script>
+
+
+</head>
+
+<body>
+
+<form name="myform">
+
+<input type=text" name="s" id="s" class='textinput'/>
+
+</form>
+
+
+
+
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <div id="chart_div"></div>
+
+
+<script>
+google.charts.load('current', {packages: ['corechart', 'line']});
+google.charts.setOnLoadCallback(drawBasic);
+
+function drawBasic() {
+
+      var data = new google.visualization.DataTable();
+    data.addColumn('date', 'Date');
+    data.addColumn('number', 'Articles');
+    data.addRow([new Date(2011, 0, 1), 10])
+    data.addRow([new Date(2011, 1, 1), 15])
+    data.addRow([new Date(2011, 3, 1), 40])
+    data.addRow([new Date(2011, 6, 1), 50])
+
+      var options = {
+        hAxis: {
+          title: 'Time'
+        }
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+
+      chart.draw(data, options);
+    }
+
+</script>
+
+
+
+
+
+<ul id="results">
+
+</ul>
+
+</body>
+
+</html>
