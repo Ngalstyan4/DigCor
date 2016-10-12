@@ -44,11 +44,18 @@ jQuery( document ).ready(function() {
 		});
 	}
 
-	$( ".textinput" ).keyup(function(event) {
-	  var s = this.value;
+
+
+
+	$( "#searchform" ).submit(function(event) {
+
+	  //var s = encodeURI($('#s').val());
+	  var s = $('#s').val().replace(/ /g,"+");
+	console.log(s);
 	  event.preventDefault();
 	  goGetData(s);
 	  goGetChartData(s);
+	  return false;
 	});
 
 
@@ -62,7 +69,7 @@ function handleResults(data) {
   var dateArr = new Array;
   $('#results').html('');
   $.each(data.response.docs, function(index, doc){
-    $('#results').append("<li>"+doc.headline+" polarity: "+doc.polarity+" subjectivity: "+doc.subjectivity+" </li>");
+    $('#results').append("<li><strong>"+doc.headline+"</strong><br/><span class='smalltext'>polarity: "+doc.polarity+" subjectivity: "+doc.subjectivity+"</span></li>");
     var dateInfo = {'year': doc.year, 'month': doc.month}
     dateArr.push(dateInfo); 
   });
@@ -73,6 +80,7 @@ function handleResults(data) {
 var dArr = [];
 
 function buildChart(data) {
+  $('#graph').html('');
   var groups = data.grouped;
   $.each(groups.yearmo.groups, function(index, doc){
   if(doc.groupValue !== null) {dArr.push({
@@ -85,7 +93,7 @@ function buildChart(data) {
 
 
 	Morris.Line({
-	  element: 'line-example',
+	  element: 'graph',
 	  data: dArr,
 
 	  xkey: 'y',
@@ -104,33 +112,36 @@ function buildChart(data) {
 
 </script>
 
+<style>
+
+body, html {
+  font-size:10pt;
+}
+
+#wrap {
+  width:960px;
+  margin:0 auto;
+}
+.smalltext {
+  font-size: 0.8em;
+}
+
+</style>
+
 
 </head>
 
 <body>
 
-<form name="myform">
+<div id="wrap">
+  <form name="searchform" id="searchform">
+    <input type="text" name="s" id="s" class='textinput'/>
+    <input type="submit" id="submitbutton" value="Search" class='textinput'/>
+  </form>
 
-<input type=text" name="s" id="s" class='textinput'/>
-
-</form>
-
-  <div id="line-example" style="width:1000px"></div>
-
-
-	<script>
-
-	</script>
-
-
-
-
-
-
-<ul id="results">
-
-</ul>
-
+  <div id="graph" style="width:1000px"></div>
+  <ul id="results"></ul>
+</div> <!-- /wrap -->
 </body>
 
 </html>
