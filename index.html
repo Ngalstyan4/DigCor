@@ -10,8 +10,9 @@
     <meta name="author" content="">
 
     <script src="js/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.3.0/Chart.bundle.min.js"></script>
-
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="js/morris/morris.min.js"></script>
 
     <title>Clean Blog</title>
 <link rel="stylesheet" type="text/css" media="screen,projection" href="css/style.css">
@@ -25,7 +26,7 @@ jQuery( document ).ready(function() {
 		searchstr = "headline:"+searchstr;
 		$.ajax({
 		  'url': 'http://ectbeta.princeton.edu:8983/solr/collection1/select',
-		  'data': {'wt':'json', 'q': searchstr, 'rows':200},
+		  'data': {'wt':'json', 'q': searchstr, 'rows':50},
 		  'success': handleResults,
 		  'dataType': 'jsonp',
 		  'jsonp': 'json.wrf'
@@ -36,7 +37,7 @@ jQuery( document ).ready(function() {
 		searchstr = "headline:"+searchstr;
 		$.ajax({
 		  'url': 'http://ectbeta.princeton.edu:8983/solr/collection1/select',
-		  'data': {'wt':'json', 'q': searchstr, 'rows':200, 'group': 'true', 'group.field': 'yearmo'},
+		  'data': {'wt':'json', 'q': searchstr, 'rows':50, 'group': 'true', 'group.field': 'yearmo'},
 		  'success': buildChart,
 		  'dataType': 'jsonp',
 		  'jsonp': 'json.wrf'
@@ -51,8 +52,8 @@ jQuery( document ).ready(function() {
 	});
 
 
-	goGetData('entitled');
-	goGetChartData('entitled');
+	goGetData('Georgia');
+	goGetChartData('Georgia');
 });
 
 
@@ -69,16 +70,32 @@ function handleResults(data) {
   //console.log(dateArr);
 }
 
-var dArr = new Array();
+var dArr = [];
 
 function buildChart(data) {
   var groups = data.grouped;
   $.each(groups.yearmo.groups, function(index, doc){
-    var yearmo = doc.groupValue;
-    var count = doc.doclist.numFound;
-    dArr.push(yearmo);
-
+  if(doc.groupValue !== null) {dArr.push({
+        'y': doc.groupValue,
+        'a': doc.doclist.numFound
+    });}
   });
+
+
+
+
+	Morris.Line({
+	  element: 'line-example',
+	  data: dArr,
+
+	  xkey: 'y',
+	  ykeys: ['a'],
+	  labels: ['Series A']
+	});
+
+
+
+
 
 }
 
@@ -98,39 +115,13 @@ function buildChart(data) {
 
 </form>
 
+  <div id="line-example" style="width:1000px"></div>
 
 
+	<script>
 
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <div id="chart_div"></div>
+	</script>
 
-
-<script>
-google.charts.load('current', {packages: ['corechart', 'line']});
-google.charts.setOnLoadCallback(drawBasic);
-
-function drawBasic() {
-
-      var data = new google.visualization.DataTable();
-    data.addColumn('date', 'Date');
-    data.addColumn('number', 'Articles');
-    data.addRow([new Date(2011, 0, 1), 10])
-    data.addRow([new Date(2011, 1, 1), 15])
-    data.addRow([new Date(2011, 3, 1), 40])
-    data.addRow([new Date(2011, 6, 1), 50])
-
-      var options = {
-        hAxis: {
-          title: 'Time'
-        }
-      };
-
-      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-
-      chart.draw(data, options);
-    }
-
-</script>
 
 
 
