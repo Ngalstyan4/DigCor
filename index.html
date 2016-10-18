@@ -91,12 +91,46 @@ function buildChart(data) {
 
 
 
+	function addAMonth(elem, dataArray) {
+	var year, month;
+	if (elem.getMonth() == 11) {
+		year = elem.getFullYear() + 1;
+		month = 0;
+	} else {
+		year = elem.getFullYear();
+		month = elem.getMonth() + 1;
+		}
+	if (month < 10) {
+		month = "0" + month;
+	}
+	dArr.push({a:0, y: year + "-" + month});
+
+    var newDate = new Date(elem.getFullYear(), elem.getMonth() + 1, 1);
+    return newDate;
+	}
+	keys = dArr.map(function(elem) {
+		return elem.y;
+	}
+	).sort().map(function(elem) {
+		return new Date(elem);
+	});
+	if(keys.length > 0)
+		var prev = keys[0];
+	for(var key in keys) {
+			var last = keys[key];
+			while((last - prev) /
+			 (24 * 3600 * 28 * 1000) > 1) {
+				prev = addAMonth(prev, dArr);
+			}
+	}
+
 
 	Morris.Line({
 	  element: 'graph',
 	  data: dArr,
 
 	  xkey: 'y',
+	  xLabelMargin: 1,
 	  ykeys: ['a'],
 	  labels: ['Series A']
 	});
